@@ -12,6 +12,7 @@ from yandex_market_language import parse, convert
 
 BASE_DIR = os.path.dirname(__file__)
 VALID_XML_PATH = os.path.join(BASE_DIR, "fixtures/valid_feed.xml")
+INVALID_XML_PATH = os.path.join(BASE_DIR,"fixtures/invalid_feed.xml")
 TEST_XML_PATH = os.path.join(BASE_DIR, "test.xml")
 
 pattern = re.compile(r"\s+")
@@ -60,6 +61,9 @@ class YMLTestCase(TestCase):
 
         self.assertIsInstance(feed, models.Feed)
         self.compare_elements(source_xml, expected_xml)
+
+    def test_parses_invalid_xml(self):
+        self.assertRaises(TypeError, parse, INVALID_XML_PATH)
 
     def test_converts_valid_feed(self):
         feed = factories.Feed()
