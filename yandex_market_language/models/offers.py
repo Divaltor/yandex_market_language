@@ -1,19 +1,17 @@
+import warnings
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import List, Optional
-import warnings
 
 from yandex_market_language.exceptions import ValidationError
-
+from . import fields
 from .abstract import AbstractModel, XMLElement, XMLSubElement
-from .price import Price
-from .option import Option
-from .parameter import Parameter
+from .age import Age
 from .condition import Condition
 from .dimensions import Dimensions
-from .age import Age
-from . import fields
-
+from .option import Option
+from .parameter import Parameter
+from .price import Price
 
 EXPIRY_FORMAT = "YYYY-MM-DDThh:mm"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -443,6 +441,9 @@ class AbstractOffer(
             kwargs["barcodes"] = barcodes
         if parameters:
             kwargs["parameters"] = parameters
+
+        if 'currency' not in kwargs:
+            kwargs['currency'] = ''
 
         kwargs["offer_id"] = offer_el.attrib["id"]
         kwargs["bid"] = offer_el.attrib.get("bid")
