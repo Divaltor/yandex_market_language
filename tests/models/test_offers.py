@@ -85,6 +85,7 @@ class BaseOfferModelTestCase(ModelTestCase):
             "available",
             "age",
             "group_id",
+            "seller_warranty"
         ]
         self.assertEqual(sorted(d.keys()), sorted(expected_keys))
 

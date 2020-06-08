@@ -69,6 +69,7 @@ class AbstractOffer(
         available=None,
         age: Age = None,
         group_id=None,
+        seller_warranty=None
     ):
         self.vendor = vendor
         self.vendor_code = vendor_code
@@ -105,6 +106,7 @@ class AbstractOffer(
         self.available = available
         self.age = age
         self.group_id = group_id
+        self.seller_warranty = seller_warranty
 
     @property
     def cbid(self):
@@ -276,6 +278,7 @@ class AbstractOffer(
             available=self.available,
             age=self.age.to_dict() if self.age else None,
             group_id=self.group_id,
+            seller_warranty=self.seller_warranty,
             **kwargs
         )
 
@@ -321,6 +324,7 @@ class AbstractOffer(
             "weight": "_weight",
             "downloadable": "_downloadable",
             "group_id": "_group_id",
+            "seller_warranty": "seller_warranty",
             **kwargs,
         }.items():
             value = getattr(self, attr)

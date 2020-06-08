@@ -214,4 +214,7 @@ class Shop(
             else:
                 kwargs[el.tag] = el.text
 
+        if 'currencies' not in kwargs:
+            kwargs['currencies'] = []
+
         return Shop(**kwargs)
