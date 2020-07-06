@@ -2,8 +2,10 @@ from datetime import datetime
 
 from .abstract import AbstractModel, XMLElement
 from .shop import Shop
+from ..exceptions import ValidationError
 
-DATE_FORMAT = "%Y-%m-%d %H:%M"
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+ALT_DATE_FORMAT = "%Y-%m-%d %H:%M"
 
 
 class Feed(AbstractModel):
@@ -23,7 +25,10 @@ class Feed(AbstractModel):
 
     @date.setter
     def date(self, dt):
-        dt = self._is_valid_datetime(dt, DATE_FORMAT, "date", True)
+        try:
+            dt = self._is_valid_datetime(dt, DATE_FORMAT, "date", True)
+        except ValidationError:
+            dt = self._is_valid_datetime(dt, ALT_DATE_FORMAT, "date", True)
         if dt is None:
             dt = datetime.now().strftime(DATE_FORMAT)
         self._date = dt
