@@ -67,7 +67,8 @@ class AbstractOffer(
         available=None,
         age: Age = None,
         group_id=None,
-        seller_warranty=None
+        seller_warranty=None,
+        **kwargs
     ):
         self.vendor = vendor
         self.vendor_code = vendor_code
