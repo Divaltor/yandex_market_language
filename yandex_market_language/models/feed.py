@@ -23,7 +23,7 @@ class Feed(AbstractModel):
     def date(self) -> datetime:
         try:
             dt = datetime.strptime(self._date, DATE_FORMAT)
-        except ValidationError:
+        except (ValidationError, ValueError):
             dt = datetime.strptime(self._date, ALT_DATE_FORMAT)
 
         if dt is None:
@@ -35,7 +35,7 @@ class Feed(AbstractModel):
     def date(self, dt):
         try:
             dt = self._is_valid_datetime(dt, DATE_FORMAT, "date", True)
-        except ValidationError:
+        except (ValidationError, ValueError):
             dt = self._is_valid_datetime(dt, ALT_DATE_FORMAT, "date", True)
         if dt is None:
             dt = datetime.now().strftime(DATE_FORMAT)
