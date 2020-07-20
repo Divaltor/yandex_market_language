@@ -21,7 +21,15 @@ class Feed(AbstractModel):
 
     @property
     def date(self) -> datetime:
-        return datetime.strptime(self._date, DATE_FORMAT)
+        try:
+            dt = datetime.strptime(self._date, DATE_FORMAT)
+        except ValidationError:
+            dt = datetime.strptime(self._date, ALT_DATE_FORMAT)
+
+        if dt is None:
+            dt = datetime.now().strftime(DATE_FORMAT)
+
+        return dt
 
     @date.setter
     def date(self, dt):
