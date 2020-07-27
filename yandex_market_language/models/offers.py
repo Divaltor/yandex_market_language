@@ -33,6 +33,43 @@ class AbstractOffer(
 
     __TYPE__ = None
 
+    __slots__ = [
+        '_cbid',
+        '_delivery',
+        '_pickup',
+        '_store',
+        '_min_quantity',
+        '_manufacturer_warranty',
+        '_adult',
+        '_parameters',
+        '_expiry',
+        '_weight',
+        '_downloadable',
+        '_available',
+        '_group_id',
+        'offer_id',
+        'url',
+        'price',
+        'currency',
+        'category_id',
+        'vendor',
+        'vendor_code',
+        'bid',
+        'old_price',
+        '_enable_auto_discounts',
+        'pictures',
+        'supplier',
+        '_delivery_options',
+        '_pickup_options',
+        'description',
+        'sales_notes',
+        'barcodes',
+        'condition',
+        'credit_template_id',
+        'dimensions',
+        'age'
+    ]
+
     def __init__(
         self,
         offer_id,
@@ -562,6 +599,11 @@ class SimplifiedOffer(AbstractOffer):
 
     __TYPE__ = None
 
+    __slots__ = [
+        *AbstractOffer.__slots__,
+        'name'
+    ]
+
     def __init__(self, name, **kwargs):
         super().__init__(**kwargs)
         self.name = name
@@ -600,6 +642,13 @@ class ArbitraryOffer(AbstractOffer):
     """
 
     __TYPE__ = "vendor.model"
+
+    __slots__ = [
+        *AbstractOffer.__slots__,
+        'model',
+        'vendor',
+        'type_prefix'
+    ]
 
     def __init__(
         self,
@@ -655,6 +704,21 @@ class AbstractBookOffer(fields.YearField, AbstractOffer, ABC):
     """
     Abstract book offer for book & audio book offer types.
     """
+
+    __slots__ = [
+        *AbstractOffer.__slots__,
+        '_volume',
+        '_part',
+        'name',
+        'publisher',
+        'age',
+        'isbn',
+        'author',
+        'series',
+        '_year',
+        'language',
+        'table_of_contents'
+    ]
 
     def __init__(
         self,
@@ -762,6 +826,12 @@ class BookOffer(AbstractBookOffer):
 
     __TYPE__ = "book"
 
+    __slots__ = [
+        *AbstractBookOffer.__slots__,
+        'binding',
+        '_page_extent'
+    ]
+
     def __init__(self, binding=None, page_extent=None, **kwargs):
         super().__init__(**kwargs)
         self.binding = binding
@@ -810,6 +880,15 @@ class AudioBookOffer(AbstractBookOffer):
     """
 
     __TYPE__ = "audiobook"
+
+    __slots__ = [
+        *AbstractBookOffer.__slots__,
+        'performed_by',
+        'performance_type',
+        'storage',
+        'audio_format',
+        'recording_length'
+    ]
 
     def __init__(
         self,
@@ -867,6 +946,18 @@ class MusicVideoOffer(fields.YearField, AbstractOffer):
     """
 
     __TYPE__ = "artist.title"
+
+    __slots__ = [
+        *AbstractOffer.__slots__,
+        'title',
+        'artist',
+        '_year',
+        'media',
+        'starring',
+        'director',
+        'original_name',
+        'country'
+    ]
 
     def __init__(
         self,
@@ -941,6 +1032,13 @@ class MedicineOffer(AbstractOffer):
 
     __TYPE__ = "medicine"
 
+    __slots__ = [
+        *AbstractOffer.__slots__,
+        'name',
+        '_delivery',
+        '_pickup'
+    ]
+
     def __init__(self, name, delivery, pickup, **kwargs):
         super().__init__(delivery=delivery, pickup=pickup, **kwargs)
         self.name = name
@@ -971,6 +1069,17 @@ class EventTicketOffer(AbstractOffer):
     """
 
     __TYPE__ = "event-ticket"
+
+    __slots__ = [
+        *AbstractOffer.__slots__,
+        '_date',
+        '_is_premiere',
+        '_is_kids',
+        'name',
+        'place',
+        'hall',
+        'hall_part'
+    ]
 
     def __init__(
         self,
@@ -1058,6 +1167,14 @@ class AlcoholOffer(AbstractOffer):
     """
 
     __TYPE__ = "alco"
+
+    __slots__ = [
+        *AbstractOffer.__slots__,
+        'name',
+        'vendor',
+        'barcodes',
+        'parameters'
+    ]
 
     def __init__(
         self,
