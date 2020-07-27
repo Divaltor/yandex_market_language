@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Iterator
 
 from .abstract import AbstractModel, XMLElement
 from .shop import Shop
@@ -43,4 +44,11 @@ class Feed(AbstractModel):
     def from_xml(el: XMLElement) -> "Feed":
         shop = Shop.from_xml(el[0])
         date = el.attrib.get("date")
+        return Feed(shop, date=date)
+
+    @staticmethod
+    def from_iterator(iterator: Iterator) -> "Feed":
+        event, root = next(iterator)
+        date = root.attrib.get('date')
+        shop = Shop.from_iterator(iterator)
         return Feed(shop, date=date)

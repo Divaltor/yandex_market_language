@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import List, Optional
+from typing import Iterator, List, Optional
 import warnings
 
 from yandex_market_language.exceptions import ValidationError
@@ -451,6 +451,93 @@ class AbstractOffer(
 
         return kwargs
 
+    @staticmethod
+    @abstractmethod
+    def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> dict:
+        kwargs = {}
+        mapping = {
+            "vendorCode": "vendor_code",
+            "oldprice": "old_price",
+            "currencyId": "currency",
+            "categoryId": "category_id",
+            "min-quantity": "min_quantity",
+            **mapping
+        }
+
+        pictures = []
+        barcodes = []
+        parameters = []
+
+        el: XMLElement
+        for event, el in iterator:
+            if event == 'end' and el.tag == 'offer':
+                break
+
+            if event == 'end' and el.tag == 'picture':
+                pictures.append(el.text)
+            elif event == 'start' and el.tag == 'delivery-options':
+                delivery_options = []
+                for event, option_el in iterator:
+                    if event == 'end' and option_el.tag == 'delivery-options':
+                        break
+
+                    if event == 'end':
+                        delivery_options.append(Option.from_xml(option_el))
+
+                kwargs['delivery_options'] = delivery_options
+            elif event == 'start' and el.tag == 'pickup-options':
+                pickup_options = []
+                for event, option_el in iterator:
+                    if event == 'end' and option_el.tag == 'pickup-options':
+                        break
+
+                    if event == 'end':
+                        pickup_options.append(Option.from_xml(option_el))
+
+                kwargs['pickup_options'] = pickup_options
+
+            elif event == 'end' and el.tag == 'barcode':
+                barcodes.append(el.text)
+            elif event == 'end' and el.tag == 'param':
+                parameters.append(Parameter.from_xml(el))
+            elif event == 'end' and el.tag == 'credit-template':
+                kwargs['credit_template_id'] = el.attrib['id']
+            elif event == 'end' and el.tag == 'dimensions':
+                kwargs['dimensions'] = Dimensions.from_xml(el)
+            elif event == 'end' and el.tag == 'price':
+                kwargs['price'] = Price.from_xml(el)
+            elif event == 'start' and el.tag == 'condition':
+                condition_type = el.attrib.get('type')
+                for event, condition_el in iterator:
+                    if event == 'end' and condition_el.tag == 'condition':
+                        break
+
+                    if event == 'end':
+                        kwargs['condition'] = Condition(condition_type, condition_el.text)
+
+            elif event == 'end' and el.tag == 'age':
+                kwargs['age'] = Age.from_xml(el)
+            elif event == 'end' and el.tag == 'supplier':
+                kwargs['supplier'] = el.attrib['ogrn']
+            else:
+                if event == 'end':
+                    k = mapping.get(el.tag, el.tag)
+                    kwargs[k] = el.text
+
+        if pictures:
+            kwargs['pictures'] = pictures
+        if barcodes:
+            kwargs['barcodes'] = barcodes
+        if parameters:
+            kwargs['parameters'] = parameters
+
+        kwargs['offer_id'] = offer_el.attrib['id']
+        kwargs['bid'] = offer_el.attrib.get('bid')
+        kwargs['cbid'] = offer_el.attrib.get('cbid')
+        kwargs['available'] = offer_el.attrib.get('available')
+
+        return kwargs
+
 
 class SimplifiedOffer(AbstractOffer):
     """
@@ -481,6 +568,11 @@ class SimplifiedOffer(AbstractOffer):
     @staticmethod
     def from_xml(offer_el: XMLElement, **mapping) -> "SimplifiedOffer":
         kwargs = AbstractOffer.from_xml(offer_el, **mapping)
+        return SimplifiedOffer(**kwargs)
+
+    @staticmethod
+    def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> "SimplifiedOffer":
+        kwargs = AbstractOffer.from_iterator(iterator, offer_el, **mapping)
         return SimplifiedOffer(**kwargs)
 
 
@@ -533,6 +625,14 @@ class ArbitraryOffer(AbstractOffer):
             "typePrefix": "type_prefix",
         })
         kwargs = AbstractOffer.from_xml(offer_el, **mapping)
+        return ArbitraryOffer(**kwargs)
+
+    @staticmethod
+    def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> "ArbitraryOffer":
+        mapping.update({
+            'typePrefix': 'type_prefix',
+        })
+        kwargs = AbstractOffer.from_iterator(iterator, offer_el, **mapping)
         return ArbitraryOffer(**kwargs)
 
 
@@ -627,6 +727,15 @@ class AbstractBookOffer(fields.YearField, AbstractOffer, ABC):
         })
         return AbstractOffer.from_xml(offer_el, **mapping)
 
+    @staticmethod
+    @abstractmethod
+    def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> dict:
+        mapping.update({
+            "publisher": "publisher",
+            "ISBN": "isbn",
+        })
+        return AbstractOffer.from_iterator(iterator, offer_el, **mapping)
+
 
 class BookOffer(AbstractBookOffer):
     """
@@ -669,6 +778,11 @@ class BookOffer(AbstractBookOffer):
     @staticmethod
     def from_xml(offer_el: XMLElement, **mapping) -> "BookOffer":
         kwargs = AbstractBookOffer.from_xml(offer_el, **mapping)
+        return BookOffer(**kwargs)
+
+    @staticmethod
+    def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> "BookOffer":
+        kwargs = AbstractBookOffer.from_iterator(iterator, offer_el, **mapping)
         return BookOffer(**kwargs)
 
 
@@ -720,6 +834,12 @@ class AudioBookOffer(AbstractBookOffer):
     def from_xml(offer_el: XMLElement, **mapping) -> "AudioBookOffer":
         mapping.update({"format": "audio_format"})
         kwargs = AbstractBookOffer.from_xml(offer_el, **mapping)
+        return AudioBookOffer(**kwargs)
+
+    @staticmethod
+    def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> "AudioBookOffer":
+        mapping.update({"format": "audio_format"})
+        kwargs = AbstractBookOffer.from_iterator(iterator, offer_el, **mapping)
         return AudioBookOffer(**kwargs)
 
 
@@ -787,6 +907,14 @@ class MusicVideoOffer(fields.YearField, AbstractOffer):
         kwargs = AbstractOffer.from_xml(offer_el, **mapping)
         return MusicVideoOffer(**kwargs)
 
+    @staticmethod
+    def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> "MusicVideoOffer":
+        mapping.update({
+            "originalName": "original_name"
+        })
+        kwargs = AbstractOffer.from_iterator(iterator, offer_el, **mapping)
+        return MusicVideoOffer(**kwargs)
+
 
 class MedicineOffer(AbstractOffer):
     """
@@ -811,6 +939,11 @@ class MedicineOffer(AbstractOffer):
     @staticmethod
     def from_xml(offer_el: XMLElement, **mapping) -> "MedicineOffer":
         kwargs = AbstractOffer.from_xml(offer_el)
+        return MedicineOffer(**kwargs)
+
+    @staticmethod
+    def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> "MedicineOffer":
+        kwargs = AbstractOffer.from_iterator(iterator, offer_el, **mapping)
         return MedicineOffer(**kwargs)
 
 
@@ -895,6 +1028,11 @@ class EventTicketOffer(AbstractOffer):
         kwargs = AbstractOffer.from_xml(offer_el)
         return EventTicketOffer(**kwargs)
 
+    @staticmethod
+    def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> "EventTicketOffer":
+        kwargs = AbstractOffer.from_iterator(iterator, offer_el, **mapping)
+        return EventTicketOffer(**kwargs)
+
 
 class AlcoholOffer(AbstractOffer):
     """
@@ -931,4 +1069,9 @@ class AlcoholOffer(AbstractOffer):
     @staticmethod
     def from_xml(offer_el: XMLElement, **mapping) -> "AlcoholOffer":
         kwargs = AbstractOffer.from_xml(offer_el)
+        return AlcoholOffer(**kwargs)
+
+    @staticmethod
+    def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> "AlcoholOffer":
+        kwargs = AbstractOffer.from_iterator(iterator, offer_el, **mapping)
         return AlcoholOffer(**kwargs)

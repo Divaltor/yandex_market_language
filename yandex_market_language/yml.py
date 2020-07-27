@@ -29,6 +29,13 @@ class YML:
         root = tree.getroot()
         return Feed.from_xml(root)
 
+    def iterparse(self) -> "Feed":
+        """
+        Fast parse an XML feed file to the Feed model
+        """
+        iterator = ET.iterparse(self._file_or_path, events=('start', 'end'))
+        return Feed.from_iterator(iterator)
+
     def convert(self, feed: "Feed", pretty: bool = True):
         """
         Converts Feed model to XML file.
@@ -42,6 +49,10 @@ class YML:
 
 def parse(file_or_path):
     return YML(file_or_path).parse()
+
+
+def iterparse(file_or_path):
+    return YML(file_or_path).iterparse()
 
 
 def convert(file_or_path, feed: "Feed", pretty: bool = True):

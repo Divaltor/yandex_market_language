@@ -7,7 +7,7 @@ from unittest import TestCase
 
 from tests import factories
 from yandex_market_language import models
-from yandex_market_language import parse, convert
+from yandex_market_language import parse, convert, iterparse
 
 
 BASE_DIR = os.path.dirname(__file__)
@@ -60,6 +60,11 @@ class YMLTestCase(TestCase):
 
         self.assertIsInstance(feed, models.Feed)
         self.compare_elements(source_xml, expected_xml)
+
+    def test_iterparses_valid_xml(self):
+        feed = iterparse(VALID_XML_PATH)
+
+        self.assertIsInstance(feed, models.Feed)
 
     def test_converts_valid_feed(self):
         feed = factories.Feed()

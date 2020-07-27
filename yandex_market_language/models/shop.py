@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Iterator
 
 from yandex_market_language import models, exceptions
 from yandex_market_language.models import fields
@@ -213,5 +213,122 @@ class Shop(
                     kwargs["promos"] = promos
             else:
                 kwargs[el.tag] = el.text
+
+        return Shop(**kwargs)
+
+    @staticmethod
+    def from_iterator(iterator: Iterator) -> "Shop":
+        kwargs = {}
+
+        el: XMLElement
+        for event, el in iterator:
+            if el.tag == 'currencies' and event == 'start':
+                currencies = []
+                currency_el: XMLElement
+                for event, currency_el in iterator:
+                    if event == 'end' and currency_el.tag == 'currencies':
+                        break
+
+                    if event == 'end':
+                        currencies.append(models.Currency.from_xml(currency_el))
+
+                kwargs['currencies'] = currencies
+
+            elif el.tag == 'categories' and event == 'start':
+                categories = []
+                category_el: XMLElement
+                for event, category_el in iterator:
+                    if event == 'end' and category_el.tag == 'categories':
+                        break
+
+                    if event == 'end':
+                        categories.append(models.Category.from_xml(category_el))
+
+                kwargs['categories'] = categories
+
+            elif el.tag == 'delivery-options' and event == 'start':
+                delivery_options = []
+                option_el: XMLElement
+                for event, option_el in iterator:
+                    if event == 'end' and option_el.tag == 'delivery-options':
+                        break
+
+                    if event == 'end':
+                        delivery_options.append(models.Option.from_xml(option_el))
+
+                kwargs['delivery_options'] = delivery_options
+
+            elif el.tag == 'pickup-options':
+                pickup_options = []
+                option_el: XMLElement
+                for event, option_el in iterator:
+                    if event == 'end' and option_el.tag == 'pickup-options':
+                        break
+
+                    if event == 'end':
+                        pickup_options.append(models.Option.from_xml(option_el))
+
+                kwargs['pickup_options'] = pickup_options
+
+            elif el.tag == 'offers' and event == 'start':
+                offers = []
+                offer_el: XMLElement
+                for event, offer_el in iterator:
+                    if event == 'end' and offer_el.tag == 'offers':
+                        break
+
+                    if event == 'start' and offer_el.tag == 'offer':
+                        offer_type = offer_el.attrib.get('type')
+                        if offer_type is None:
+                            offer = models.SimplifiedOffer.from_iterator(iterator, offer_el)
+                        elif offer_type == "vendor.model":
+                            offer = models.ArbitraryOffer.from_iterator(iterator, offer_el)
+                        elif offer_type == "book":
+                            offer = models.BookOffer.from_iterator(iterator, offer_el)
+                        elif offer_type == "audiobook":
+                            offer = models.AudioBookOffer.from_iterator(iterator, offer_el)
+                        elif offer_type == "artist.title":
+                            offer = models.MusicVideoOffer.from_iterator(iterator, offer_el)
+                        elif offer_type == "medicine":
+                            offer = models.MedicineOffer.from_iterator(iterator, offer_el)
+                        elif offer_type == "event-ticket":
+                            offer = models.EventTicketOffer.from_iterator(iterator, offer_el)
+                        elif offer_type == "alco":
+                            offer = models.AlcoholOffer.from_iterator(iterator, offer_el)
+                        else:
+                            raise exceptions.ParseError(
+                                'Got unexpected offer type: {0}'.format(offer_type)
+                            )
+                        offers.append(offer)
+                kwargs['offers'] = offers
+            elif el.tag == 'gifts' and event == 'start':
+                gifts = []
+                gift_el: XMLElement
+                for gift_el in iterator:
+                    if event == 'end' and gift_el.tag == 'gifts':
+                        break
+
+                    if event == 'end':
+                        gifts.append(models.Gift.from_xml(gift_el))
+
+                if gifts:
+                    kwargs['gifts'] = gifts
+
+            elif el.tag == 'promos' and event == 'start':
+                promos = []
+                promo_el: XMLElement
+                for promo_el in iterator:
+                    if event == 'end' and promo_el.tag == 'promos':
+                        break
+
+                    if event == 'end':
+                        promos.append(models.Promo.from_xml(promo_el))
+
+                if promos:
+                    kwargs['promos'] = promos
+
+            else:
+                if event == 'end':
+                    kwargs[el.tag] = el.text
 
         return Shop(**kwargs)
