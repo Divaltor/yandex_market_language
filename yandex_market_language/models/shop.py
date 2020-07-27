@@ -358,6 +358,9 @@ class Shop(
                 if event == 'end':
                     kwargs[el.tag] = el.text
 
+        if 'currencies' not in kwargs:
+            kwargs['currencies'] = []
+
         args = inspect.getfullargspec(Shop.__init__).args[1:]
         args = {*args}
         kwargs = {key: value for (key, value) in kwargs.items() if key in args}
