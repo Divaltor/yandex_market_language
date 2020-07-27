@@ -1,6 +1,7 @@
+import inspect
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional
 import warnings
 
 from yandex_market_language.exceptions import ValidationError
@@ -538,6 +539,13 @@ class AbstractOffer(
 
         return kwargs
 
+    @classmethod
+    def clear_args(cls, kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        args = inspect.getfullargspec(cls.__init__).args[1:] + \
+               inspect.getfullargspec(AbstractOffer.__init__).args[1:]
+        args = {*args}
+        return {key: value for (key, value) in kwargs.items() if key in args}
+
 
 class SimplifiedOffer(AbstractOffer):
     """
@@ -568,11 +576,13 @@ class SimplifiedOffer(AbstractOffer):
     @staticmethod
     def from_xml(offer_el: XMLElement, **mapping) -> "SimplifiedOffer":
         kwargs = AbstractOffer.from_xml(offer_el, **mapping)
+        kwargs = SimplifiedOffer.clear_args(kwargs)
         return SimplifiedOffer(**kwargs)
 
     @staticmethod
     def from_iterator(iterator: Iterator, offer_el: XMLElement, **mapping) -> "SimplifiedOffer":
         kwargs = AbstractOffer.from_iterator(iterator, offer_el, **mapping)
+        kwargs = SimplifiedOffer.clear_args(kwargs)
         return SimplifiedOffer(**kwargs)
 
 
@@ -625,6 +635,7 @@ class ArbitraryOffer(AbstractOffer):
             "typePrefix": "type_prefix",
         })
         kwargs = AbstractOffer.from_xml(offer_el, **mapping)
+        kwargs = ArbitraryOffer.clear_args(kwargs)
         return ArbitraryOffer(**kwargs)
 
     @staticmethod
@@ -633,6 +644,7 @@ class ArbitraryOffer(AbstractOffer):
             'typePrefix': 'type_prefix',
         })
         kwargs = AbstractOffer.from_iterator(iterator, offer_el, **mapping)
+        kwargs = ArbitraryOffer.clear_args(kwargs)
         return ArbitraryOffer(**kwargs)
 
 

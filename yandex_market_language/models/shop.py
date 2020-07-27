@@ -1,3 +1,4 @@
+import inspect
 from typing import List, Iterator
 
 from yandex_market_language import models, exceptions
@@ -236,6 +237,10 @@ class Shop(
         if 'currencies' not in kwargs:
             kwargs['currencies'] = []
 
+        args = inspect.getfullargspec(Shop.__init__).args[1:]
+        args = {*args}
+        kwargs = {key: value for (key, value) in kwargs.items() if key in args}
+
         return Shop(**kwargs)
 
     @staticmethod
@@ -352,5 +357,9 @@ class Shop(
             else:
                 if event == 'end':
                     kwargs[el.tag] = el.text
+
+        args = inspect.getfullargspec(Shop.__init__).args[1:]
+        args = {*args}
+        kwargs = {key: value for (key, value) in kwargs.items() if key in args}
 
         return Shop(**kwargs)
