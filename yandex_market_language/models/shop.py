@@ -121,7 +121,8 @@ class Shop(
         # Add currencies
         currencies_el = XMLSubElement(shop_el, "currencies")
         for c in self.currencies:
-            c.to_xml(currencies_el)
+            if not isinstance(c, str):
+                c.to_xml(currencies_el)
 
         # Add categories
         categories_el = XMLSubElement(shop_el, "categories")
