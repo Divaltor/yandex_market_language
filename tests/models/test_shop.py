@@ -78,12 +78,12 @@ class ShopModelTestCase(ModelTestCase):
             else:
                 self.assertEqual(el.text, getattr(shop, el.tag))
 
-    def test_url_validation_error(self):
-        with self.assertRaises(exceptions.ValidationError) as e:
-            factories.ShopFactory(url=fake.pystr(513, 513))
-            self.assertEqual(
-                str(e), "The maximum url length is 512 characters."
-            )
+    # def test_url_validation_error(self):
+    #     with self.assertRaises(exceptions.ValidationError) as e:
+    #         factories.ShopFactory(url=fake.pystr(513, 513))
+    #         self.assertEqual(
+    #             str(e), "The maximum url length is 512 characters."
+    #         )
 
     @mock.patch("yandex_market_language.models.Promo.from_xml")
     @mock.patch("yandex_market_language.models.Gift.from_xml")

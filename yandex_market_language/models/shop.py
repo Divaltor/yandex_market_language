@@ -79,8 +79,6 @@ class Shop(
 
     @url.setter
     def url(self, value: str):
-        if len(value) > 512:
-            raise ValidationError("The maximum url length is 512 characters.")
         self._url = value
 
     def create_dict(self, **kwargs) -> dict:
