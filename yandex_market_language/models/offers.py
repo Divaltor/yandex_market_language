@@ -36,10 +36,10 @@ class AbstractOffer(
     def __init__(
         self,
         offer_id,
-        url,
         price: Price,
         currency: str,
         category_id,
+        url=None,
         vendor=None,
         vendor_code=None,
         bid=None,
