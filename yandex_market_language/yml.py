@@ -1,7 +1,7 @@
 from xml.dom import minidom
 from xml.etree import ElementTree as ET
 
-from lxml import etree
+import re
 
 from yandex_market_language.models import Feed
 
@@ -27,7 +27,15 @@ class YML:
         """
         Parses an XML feed file to the Feed model.
         """
-        parser = etree.XMLParser(recover=True, encoding='utf-8')
+        with open(self._file_or_path, 'rb') as file:
+            data = file.read()
+            illegal = re.compile(br'[\x19\x1b\x1a\x04\x05\x18\x0c]')
+            data = illegal.sub(b'', data)
+
+        with open(self._file_or_path, 'wb') as file:
+            file.write(data)
+
+        parser = ET.XMLParser(encoding='utf-8')
         tree = ET.parse(self._file_or_path, parser=parser)
         root = tree.getroot()
         return Feed.from_xml(root)
