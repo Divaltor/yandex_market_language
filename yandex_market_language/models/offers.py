@@ -287,7 +287,7 @@ class AbstractOffer(
             offer_id=self.offer_id,
             bid=self.bid,
             url=self.url,
-            price=self.price.to_dict(),
+            price=self.price.to_dict() if self.price else Price(0).to_dict(),
             old_price=self.old_price,
             enable_auto_discounts=self.enable_auto_discounts,
             currency=self.currency,
